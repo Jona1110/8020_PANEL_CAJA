@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>80/20 | Punto de Venta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
+    <link rel="stylesheet" href="caja.css">
+    <!-- Librería para Gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Menú Lateral -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-container">
+                <img src="LOGO_8020.png" alt="80/20 Logo" class="sidebar-logo">
+            </div>
+            <p>Admin Workspace</p>
+        </div>
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('pedidos', this)">
+                <span class="material-symbols-rounded">dashboard</span> Panel Central
+            </button>
+            <button class="nav-btn" onclick="switchTab('menu', this)">
+                <span class="material-symbols-rounded">restaurant_menu</span> Editor de Menú
+            </button>
+            <button class="nav-btn" onclick="switchTab('reportes', this)">
+                <span class="material-symbols-rounded">monitoring</span> Reportes y Cierre
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <span class="material-symbols-rounded">account_circle</span>
+            <span>Caja Activa</span>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="content">
+        <header class="top-bar">
+            <div>
+                <h1 id="tab-title">Panel Central</h1>
+                <p class="subtitle" id="fecha-actual">Gestión de órdenes en tiempo real</p>
+            </div>
+            <button class="refresh-btn" onclick="initDashboard()">
+                <span class="material-symbols-rounded">sync</span> Sincronizar
+            </button>
+        </header>
+
+        <!-- SECCIÓN: CAJA / PEDIDOS -->
+        <section id="sec-pedidos" class="tab-content active">
+            <!-- Estadísticas Rápidas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                        <span class="material-symbols-rounded">receipt_long</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Órdenes Activas</h3>
+                        <p id="stat-activas">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
+                        <span class="material-symbols-rounded">skillet</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>En Cocina</h3>
+                        <p id="stat-cocina">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
+                        <span class="material-symbols-rounded">room_service</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Listas para Entrega</h3>
+                        <p id="stat-listas">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor de Tickets -->
+            <div class="section-header">
+                <h2>Tickets Pendientes</h2>
+            </div>
+            <div id="pedidos-container" class="grid-pedidos">
+                <div class="empty-state">Cargando operaciones...</div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: EDITOR DE MENÚ -->
+        <section id="sec-menu" class="tab-content">
+            <div class="section-header">
+                <h2>Gestión de Platillos e Inventario</h2>
+            </div>
+            <div id="menu-editor-container" class="menu-grid">
+                <p>Cargando platillos...</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: REPORTES -->
+        <section id="sec-reportes" class="tab-content">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Cierre de Caja y Desempeño</h2>
+                <button class="cobrar-btn ready-btn" onclick="confirmarCierreCaja()">
+                    <span class="material-symbols-rounded">lock_clock</span> Ejecutar Cierre Manual
+                </button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card" style="border-left: 5px solid var(--status-ready-text);">
+                    <div class="stat-icon" style="background: #e8f5e9; color: #2e7d32;">
+                        <span class="material-symbols-rounded">payments</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Ventas Acumuladas Hoy</h3>
+                        <p id="rep-ingresos-hoy" style="color: var(--status-ready-text);">$0.00</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                        <span class="material-symbols-rounded">shopping_bag</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Tickets Procesados Hoy</h3>
+                        <p id="rep-ordenes-hoy">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3>Ingresos de los Últimos 7 Días</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Novedad: Contenedor para Notificaciones Flotantes (Toasts) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Novedad: Modal de Alertas y Confirmaciones de Sistema -->
+    <div id="custom-alert" class="modal-overlay">
+        <div class="alert-card">
+            <div class="alert-icon" id="alert-icon">
+                <span class="material-symbols-rounded" style="font-size: 36px;">help</span>
+            </div>
+            <h3 id="alert-title">Título</h3>
+            <p id="alert-message">Mensaje</p>
+            <div class="alert-actions" id="alert-actions">
+                <!-- Botones inyectados dinámicamente según sea aviso o confirmación -->
+            </div>
+        </div>
+    </div>
+
+    <script src="caja.js"></script>
+</body>
+</html>
